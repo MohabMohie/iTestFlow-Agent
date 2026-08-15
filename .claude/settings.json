@@ -1,0 +1,13 @@
+{
+  "enabledPlugins": {
+    "chaos-engine@chaos-engine-project": true
+  },
+  "extraKnownMarketplaces": {
+    "chaos-engine-project": {
+      "source": {
+        "path": ".",
+        "source": "directory"
+      }
+    }
+  }
+}

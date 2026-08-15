@@ -1,0 +1,15 @@
+{
+  "description": "Neutral project-local agent harness.",
+  "name": "chaos-engine-project",
+  "owner": {
+    "name": "ChaosEngine contributors"
+  },
+  "plugins": [
+    {
+      "description": "Neutral project-local agent harness.",
+      "name": "chaos-engine",
+      "source": "./plugins/chaos-engine",
+      "version": "1.0.2083476371"
+    }
+  ]
+}
