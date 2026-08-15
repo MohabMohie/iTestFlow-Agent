@@ -205,9 +205,11 @@ The UI uses Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/Radix pr
 
 ### Agent harness
 
-This repository includes the neutral ChaosEngine harness for supported coding
-agents. Restart an agent client after first checkout so it loads the
-project-local plugin, then verify the complete installation with:
+This repository includes the tracked, neutral ChaosEngine harness for supported
+coding agents. On a fresh checkout, run the single-command setup in
+[the installed guide](.chaos-engine/INSTALL.md) to provision the intentionally
+untracked local runtime and activate detected clients. Restart any open agent
+client, then verify the complete installation with:
 
 ```powershell
 py -3 .chaos-engine/install.py doctor --project .
@@ -215,9 +217,8 @@ py -3 .chaos-engine/install.py doctor --project .
 
 The command actively checks the canonical skill and playbooks, lifecycle
 hooks, role adapters, plugins, MCP servers, Memory, MemPalace, Graphify, and
-all pinned local tools. Use the single-command upgrade flow in
-[the installed guide](.chaos-engine/INSTALL.md) to refresh the whole harness;
-do not install individual generated adapters by hand.
+all pinned local tools. Reuse that same single-command flow to refresh the whole
+harness; do not install individual generated adapters by hand.
 
 ### Verification
 
