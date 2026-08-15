@@ -203,6 +203,22 @@ Treat the database and environment secrets as sensitive application state.
 
 The UI uses Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/Radix primitives, Lucide icons, and Recharts.
 
+### Agent harness
+
+This repository includes the neutral ChaosEngine harness for supported coding
+agents. Restart an agent client after first checkout so it loads the
+project-local plugin, then verify the complete installation with:
+
+```powershell
+py -3 .chaos-engine/install.py doctor --project .
+```
+
+The command actively checks the canonical skill and playbooks, lifecycle
+hooks, role adapters, plugins, MCP servers, Memory, MemPalace, Graphify, and
+all pinned local tools. Use the single-command upgrade flow in
+[the installed guide](.chaos-engine/INSTALL.md) to refresh the whole harness;
+do not install individual generated adapters by hand.
+
 ### Verification
 
 ```bash

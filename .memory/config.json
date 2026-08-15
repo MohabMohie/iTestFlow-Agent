@@ -1,0 +1,11 @@
+{
+  "memory": {
+    "autoIndex": true,
+    "defaultTokenBudget": 6000
+  },
+  "project": {
+    "id": "project.itestflow-agent",
+    "name": "iTestFlow-Agent"
+  },
+  "version": 5
+}
