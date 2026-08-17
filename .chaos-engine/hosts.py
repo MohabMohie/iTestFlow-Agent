@@ -696,8 +696,22 @@ GITIGNORE_END = "# CHAOSENGINE-RUNTIME:END"
 
 
 def interpreter(platform_name: str | None = None) -> tuple[str, list[str]]:
-    platform_name = platform_name or os.name
-    return ("py", ["-3"]) if platform_name == "nt" else ("python3", [])
+    return (sys.executable, [])
+
+
+def guard_hook_command(interpreter_path: str, fallback: str) -> str:
+    script = (
+        "import os, pathlib, runpy; "
+        "root = os.environ.get('CLAUDE_PLUGIN_ROOT', ''); "
+        "path = pathlib.Path(root) / 'hooks' / 'guard.py' if root else None; "
+        "path = path if path is not None and path.is_file() else None; "
+        "path = path if path is not None else next((p for parent in ((pathlib.Path('.').resolve(),) + tuple(pathlib.Path('.').resolve().parents)) "
+        "for p in (parent / '.chaos-engine' / 'hooks' / 'guard.py', parent / 'plugins' / 'chaos-engine' / 'hooks' / 'guard.py') if p.is_file()), "
+        "None); "
+        f"path = path or pathlib.Path({json.dumps(fallback)}).resolve(); "
+        "runpy.run_path(str(path), run_name='__main__')"
+    )
+    return f'"{interpreter_path}" -c ' + json.dumps(script)
 
 
 def plugin_cache_version(core_commit: str | None) -> str:
@@ -1363,7 +1377,9 @@ def desired_content(
         + "\n"
     ).encode()
     command, prefix = interpreter()
-    hook_command = " ".join([command, *prefix, '"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py"'])
+    if prefix:
+        raise ValueError("interpreter prefix is unsupported for hook execution")
+    hook_command = guard_hook_command(command, ".chaos-engine/hooks/guard.py")
     lifecycle_events = {
         "SessionStart": "startup|resume|clear|compact",
         "UserPromptSubmit": None,
@@ -1383,7 +1399,7 @@ def desired_content(
     rendered_plugin_hooks = (
         json.dumps({"hooks": hooks}, indent=2, sort_keys=True) + "\n"
     ).encode()
-    project_command = " ".join([command, *prefix, ".chaos-engine/hooks/guard.py"])
+    project_command = hook_command
     project_hooks = json.loads(rendered_plugin_hooks)
     for groups in project_hooks["hooks"].values():
         for group in groups:

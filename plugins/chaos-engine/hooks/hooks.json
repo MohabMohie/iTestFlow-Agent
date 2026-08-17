@@ -4,7 +4,7 @@
       {
         "hooks": [
           {
-            "command": "py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "command": "python -c \"import os, pathlib, runpy; root = os.environ.get('CLAUDE_PLUGIN_ROOT', ''); path = pathlib.Path(root) / 'hooks' / 'guard.py' if root else None; path = path if path is not None and path.is_file() else None; paths = ((pathlib.Path('.').resolve(),) + tuple(pathlib.Path('.').resolve().parents)); path = path or next((candidate for parent in paths for candidate in (parent / '.chaos-engine' / 'hooks' / 'guard.py', parent / 'plugins' / 'chaos-engine' / 'hooks' / 'guard.py') if candidate.is_file()), None); path = path or pathlib.Path('.chaos-engine/hooks/guard.py').resolve(); runpy.run_path(str(path), run_name='__main__')\"",
             "timeout": 5,
             "type": "command"
           }
@@ -16,7 +16,7 @@
       {
         "hooks": [
           {
-            "command": "py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "command": "python -c \"import os, pathlib, runpy; root = os.environ.get('CLAUDE_PLUGIN_ROOT', ''); path = pathlib.Path(root) / 'hooks' / 'guard.py' if root else None; path = path if path is not None and path.is_file() else None; paths = ((pathlib.Path('.').resolve(),) + tuple(pathlib.Path('.').resolve().parents)); path = path or next((candidate for parent in paths for candidate in (parent / '.chaos-engine' / 'hooks' / 'guard.py', parent / 'plugins' / 'chaos-engine' / 'hooks' / 'guard.py') if candidate.is_file()), None); path = path or pathlib.Path('.chaos-engine/hooks/guard.py').resolve(); runpy.run_path(str(path), run_name='__main__')\"",
             "timeout": 5,
             "type": "command"
           }
@@ -28,7 +28,7 @@
       {
         "hooks": [
           {
-            "command": "py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "command": "python -c \"import os, pathlib, runpy; root = os.environ.get('CLAUDE_PLUGIN_ROOT', ''); path = pathlib.Path(root) / 'hooks' / 'guard.py' if root else None; path = path if path is not None and path.is_file() else None; paths = ((pathlib.Path('.').resolve(),) + tuple(pathlib.Path('.').resolve().parents)); path = path or next((candidate for parent in paths for candidate in (parent / '.chaos-engine' / 'hooks' / 'guard.py', parent / 'plugins' / 'chaos-engine' / 'hooks' / 'guard.py') if candidate.is_file()), None); path = path or pathlib.Path('.chaos-engine/hooks/guard.py').resolve(); runpy.run_path(str(path), run_name='__main__')\"",
             "timeout": 5,
             "type": "command"
           }
@@ -40,7 +40,7 @@
       {
         "hooks": [
           {
-            "command": "py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "command": "python -c \"import os, pathlib, runpy; root = os.environ.get('CLAUDE_PLUGIN_ROOT', ''); path = pathlib.Path(root) / 'hooks' / 'guard.py' if root else None; path = path if path is not None and path.is_file() else None; paths = ((pathlib.Path('.').resolve(),) + tuple(pathlib.Path('.').resolve().parents)); path = path or next((candidate for parent in paths for candidate in (parent / '.chaos-engine' / 'hooks' / 'guard.py', parent / 'plugins' / 'chaos-engine' / 'hooks' / 'guard.py') if candidate.is_file()), None); path = path or pathlib.Path('.chaos-engine/hooks/guard.py').resolve(); runpy.run_path(str(path), run_name='__main__')\"",
             "timeout": 5,
             "type": "command"
           }
@@ -51,7 +51,7 @@
       {
         "hooks": [
           {
-            "command": "py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "command": "python -c \"import os, pathlib, runpy; root = os.environ.get('CLAUDE_PLUGIN_ROOT', ''); path = pathlib.Path(root) / 'hooks' / 'guard.py' if root else None; path = path if path is not None and path.is_file() else None; paths = ((pathlib.Path('.').resolve(),) + tuple(pathlib.Path('.').resolve().parents)); path = path or next((candidate for parent in paths for candidate in (parent / '.chaos-engine' / 'hooks' / 'guard.py', parent / 'plugins' / 'chaos-engine' / 'hooks' / 'guard.py') if candidate.is_file()), None); path = path or pathlib.Path('.chaos-engine/hooks/guard.py').resolve(); runpy.run_path(str(path), run_name='__main__')\"",
             "timeout": 5,
             "type": "command"
           }
@@ -62,7 +62,7 @@
       {
         "hooks": [
           {
-            "command": "py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "command": "python -c \"import os, pathlib, runpy; root = os.environ.get('CLAUDE_PLUGIN_ROOT', ''); path = pathlib.Path(root) / 'hooks' / 'guard.py' if root else None; path = path if path is not None and path.is_file() else None; paths = ((pathlib.Path('.').resolve(),) + tuple(pathlib.Path('.').resolve().parents)); path = path or next((candidate for parent in paths for candidate in (parent / '.chaos-engine' / 'hooks' / 'guard.py', parent / 'plugins' / 'chaos-engine' / 'hooks' / 'guard.py') if candidate.is_file()), None); path = path or pathlib.Path('.chaos-engine/hooks/guard.py').resolve(); runpy.run_path(str(path), run_name='__main__')\"",
             "timeout": 5,
             "type": "command"
           }
