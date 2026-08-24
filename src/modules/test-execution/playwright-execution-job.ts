@@ -122,7 +122,8 @@ export const runPlaywrightExecutionJob: JobHandler = async (job, context) => {
         if (settings?.baseUrl && steps.length) {
           try {
             const navigateArgs = await validatePlaywrightToolArguments("browser_navigate", { url: settings.baseUrl }, toolPolicy);
-            await connection.tools.callTool("browser_navigate", navigateArgs, context.signal);
+            const navigateResult = await connection.tools.callTool("browser_navigate", navigateArgs, context.signal);
+            if (navigateResult.isError === true) throw new Error("Playwright MCP Base URL navigation failed.");
           } catch (error) {
             outcome = context.signal.aborted ? "cancelled" : "error";
             errorMessage = error instanceof Error && /allowed origin/i.test(error.message)

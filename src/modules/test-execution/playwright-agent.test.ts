@@ -168,7 +168,7 @@ describe("Playwright MCP agent guardrails", () => {
       action: "Upload fixture",
       llm: nativeLlm(generateStructuredOutput),
       tools: testTools({
-        callTool: async () => ({ path: fixture, message: `Uploaded ${fixture}` }),
+        callTool: async () => ({ content: [{ type: "text", text: `Uploaded ${fixture}` }] }),
         listOpenTabs: async () => ["about:blank"],
       }),
       signal: new AbortController().signal,
@@ -183,6 +183,48 @@ describe("Playwright MCP agent guardrails", () => {
     for (const value of [fixture, path.basename(fixture), path.resolve("src")]) {
       expect(durable).not.toContain(value);
       expect(secondPrompt).not.toContain(value);
+    }
+  });
+
+  it("retains an MCP upload error marker while redacting fixture paths", async () => {
+    const fixture = path.resolve("src/modules/test-execution/playwright-agent.ts");
+    const decisions = [
+      { kind: "tool_call", toolName: "browser_file_upload", arguments: { paths: [fixture] }, reason: "Upload fixture" },
+      { kind: "complete", outcome: "error", summary: "Upload failed." },
+    ];
+    const generateStructuredOutput = vi.fn(async (_input: { user: string }) => ({ validatedOutput: decisions.shift() }));
+    const events: unknown[] = [];
+
+    await executeTestStepWithAgent({
+      action: "Upload fixture",
+      llm: nativeLlm(generateStructuredOutput),
+      tools: testTools({
+        callTool: async () => ({
+          content: [{ type: "text", text: `Could not upload ${fixture}` }],
+          isError: true,
+        }),
+        listOpenTabs: async () => ["about:blank"],
+      }),
+      signal: new AbortController().signal,
+      toolPolicy: {
+        transport: "stdio", allowAllOrigins: false, allowedNavigationOrigins: httpPolicy.allowedNavigationOrigins,
+        uploadRoots: [path.resolve("src")],
+      },
+      maxTurns: 2,
+      onEvent: (event) => { events.push(event); },
+    });
+
+    const durable = JSON.stringify(events);
+    const secondPrompt = JSON.parse(generateStructuredOutput.mock.calls[1]![0].user);
+    const serializedSecondPrompt = JSON.stringify(secondPrompt);
+    expect(events[0]).toMatchObject({
+      kind: "tool_call",
+      result: { status: "upload_result_redacted", isError: true },
+    });
+    expect(secondPrompt.observations[0].result).toEqual({ status: "upload_result_redacted", isError: true });
+    for (const value of [fixture, path.basename(fixture), path.resolve("src")]) {
+      expect(durable).not.toContain(value);
+      expect(serializedSecondPrompt).not.toContain(value);
     }
   });
 
@@ -283,7 +325,7 @@ describe("Playwright MCP agent guardrails", () => {
       { name: "complete_test_step", arguments: { outcome: "passed", summary: "Observed page." } },
     ];
     const generateToolCall = vi.fn(async (_input: unknown) => ({ toolCall: toolCalls.shift() }));
-    const callTool = vi.fn(async () => ({ content: [{ type: "text", text: "page" }] }));
+    const callTool = vi.fn(async () => ({ content: [{ type: "text" as const, text: "page" }] }));
 
     await expect(executeTestStepWithAgent({
       action: "Verify the page",
@@ -301,6 +343,94 @@ describe("Playwright MCP agent guardrails", () => {
       expect.objectContaining({ name: "browser_snapshot" }),
       expect.objectContaining({ name: "complete_test_step" }),
     ]));
+  });
+
+  it("does not count MCP error results as browser evidence", async () => {
+    const toolCalls = [
+      { name: "browser_snapshot", arguments: {} },
+      { name: "complete_test_step", arguments: { outcome: "passed", summary: "Observed page." } },
+    ];
+    const generateToolCall = vi.fn(async (_input: unknown) => ({ toolCall: toolCalls.shift() }));
+    const errorResult = {
+      content: [{ type: "text" as const, text: "Timeout waiting for locator" }],
+      isError: true,
+    };
+    const callTool = vi.fn(async () => errorResult);
+
+    await expect(executeTestStepWithAgent({
+      action: "Verify the page",
+      llm: { generateToolCall } as unknown as LLMProvider,
+      tools: {
+        callTool,
+        listOpenTabs: async () => ["https://example.com/app"],
+        toolDefinitions: [{ name: "browser_snapshot", description: "Inspect page.", inputSchema: { type: "object", properties: {} } }],
+      },
+      signal: new AbortController().signal,
+      toolPolicy: httpPolicy,
+      maxTurns: 2,
+    })).resolves.toMatchObject({ outcome: "timeout", turns: 2 });
+
+    const secondPrompt = JSON.parse((generateToolCall.mock.calls[1]?.[0] as { user: string }).user);
+    expect(secondPrompt.observations).toEqual([{
+      toolName: "browser_snapshot",
+      arguments: {},
+      result: errorResult,
+    }]);
+    expect(callTool).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows an error completion after an MCP tool error", async () => {
+    const toolCalls = [
+      { name: "browser_snapshot", arguments: {} },
+      { name: "complete_test_step", arguments: { outcome: "error", summary: "Browser snapshot failed." } },
+    ];
+    const generateToolCall = vi.fn(async (_input: unknown) => ({ toolCall: toolCalls.shift() }));
+    const callTool = vi.fn(async () => ({
+      content: [{ type: "text" as const, text: "Timeout waiting for locator" }],
+      isError: true,
+    }));
+
+    await expect(executeTestStepWithAgent({
+      action: "Verify the page",
+      llm: { generateToolCall } as unknown as LLMProvider,
+      tools: {
+        callTool,
+        listOpenTabs: async () => ["https://example.com/app"],
+        toolDefinitions: [{ name: "browser_snapshot", description: "Inspect page.", inputSchema: { type: "object", properties: {} } }],
+      },
+      signal: new AbortController().signal,
+      toolPolicy: httpPolicy,
+      maxTurns: 2,
+    })).resolves.toMatchObject({ outcome: "error", summary: "Browser snapshot failed.", turns: 2 });
+    expect(callTool).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows passed completion after an MCP error is followed by a successful browser result", async () => {
+    const toolCalls = [
+      { name: "browser_snapshot", arguments: {} },
+      { name: "browser_snapshot", arguments: {} },
+      { name: "complete_test_step", arguments: { outcome: "passed", summary: "Observed page." } },
+    ];
+    const generateToolCall = vi.fn(async (_input: unknown) => ({ toolCall: toolCalls.shift() }));
+    const callTool = vi.fn()
+      .mockResolvedValueOnce({
+        content: [{ type: "text", text: "Timeout waiting for locator" }],
+        isError: true,
+      })
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "Page snapshot" }] });
+
+    await expect(executeTestStepWithAgent({
+      action: "Verify the page",
+      llm: { generateToolCall } as unknown as LLMProvider,
+      tools: {
+        callTool,
+        listOpenTabs: async () => ["https://example.com/app"],
+        toolDefinitions: [{ name: "browser_snapshot", description: "Inspect page.", inputSchema: { type: "object", properties: {} } }],
+      },
+      signal: new AbortController().signal,
+      toolPolicy: httpPolicy,
+    })).resolves.toMatchObject({ outcome: "passed", summary: "Observed page.", turns: 3 });
+    expect(callTool).toHaveBeenCalledTimes(2);
   });
 
   it("names the provider and model when complete_test_step arguments are malformed", async () => {
@@ -333,7 +463,7 @@ describe("Playwright MCP agent guardrails", () => {
     const generateStructuredOutput = vi.fn(async () => ({ validatedOutput: decisions.shift() }));
     const onEvent = vi.fn();
     const tools = {
-      callTool: vi.fn(async () => ({ content: [{ type: "text", text: "redirected page contents" }] })),
+      callTool: vi.fn(async () => ({ content: [{ type: "text" as const, text: "redirected page contents" }] })),
       listOpenTabs: vi.fn()
         .mockResolvedValueOnce(["about:blank"])
         .mockResolvedValueOnce(["https://example.com/login"])
@@ -430,7 +560,7 @@ describe("Playwright MCP agent guardrails", () => {
     const result = await executeTestStepWithAgent({
       action: "Open the page", expectedResult: "Heading is visible", llm,
       tools: testTools({
-        callTool: async (name) => { calls.push(name); return { heading: "Example" }; },
+        callTool: async (name) => { calls.push(name); return { content: [{ type: "text", text: "Example" }] }; },
         listOpenTabs: async () => ["https://example.com"],
       }),
       signal: new AbortController().signal, toolPolicy: httpPolicy,
@@ -443,7 +573,7 @@ describe("Playwright MCP agent guardrails", () => {
     const llm = nativeLlm(async () => ({ validatedOutput: { kind: "tool_call", toolName: "browser_snapshot", arguments: {}, reason: "Inspect" } }));
     const result = await executeTestStepWithAgent({
       action: "Inspect", llm,
-      tools: testTools({ callTool: async () => ({}), listOpenTabs: async () => ["https://example.com"] }),
+      tools: testTools({ callTool: async () => ({ content: [] }), listOpenTabs: async () => ["https://example.com"] }),
       signal: new AbortController().signal, toolPolicy: httpPolicy, maxTurns: 2,
     });
     expect(result).toEqual({ outcome: "timeout", summary: "Step exceeded the 2-turn agent limit.", turns: 2 });
@@ -687,7 +817,7 @@ describe("PlaywrightAgentDecision normalization", () => {
     await executeTestStepWithAgent({
       action: "Verify",
       llm: { generateToolCall } as unknown as LLMProvider,
-      tools: testTools({ callTool: vi.fn(), listOpenTabs: async () => ["https://example.com"] }),
+      tools: testTools({ callTool: vi.fn(async () => ({ content: [] })), listOpenTabs: async () => ["https://example.com"] }),
       signal: new AbortController().signal,
       toolPolicy: httpPolicy,
     });

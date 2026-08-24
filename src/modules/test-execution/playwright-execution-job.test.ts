@@ -71,7 +71,7 @@ function jobContext() {
 }
 
 function primeHappyRun(input: { screenshotPolicy: string; agentOutcomes: Array<{ outcome: string; summary: string }>; headless?: boolean; viewportWidth?: number; viewportHeight?: number }) {
-  const callTool = vi.fn(async (..._args: unknown[]) => ({ content: [] as unknown[] }));
+  const callTool = vi.fn(async (..._args: unknown[]): Promise<{ content: unknown[]; isError?: boolean }> => ({ content: [] }));
   resolvePlaywrightMcpConfig.mockResolvedValue({ status: "configured", transport: "stdio", endpoint: null, artifactBaseUrl: null, bearerToken: null });
   // jsonb round-trips reorder object keys — the mock mimics that so a regression
   // to stringify-equality drift checking fails here.
@@ -177,6 +177,27 @@ describe("Playwright execution job", () => {
     validateToolArguments.mockRejectedValueOnce(new Error("Playwright navigation URL is not on an allowed origin."));
     await runPlaywrightExecutionJob(job, jobContext());
     expect(callTool.mock.calls.filter((call) => call[0] === "browser_resize")).toHaveLength(0);
+  });
+
+  it("fails the case when Base URL navigation resolves with an MCP tool error", async () => {
+    const { callTool } = primeHappyRun({ screenshotPolicy: "none", agentOutcomes: [] });
+    callTool.mockResolvedValueOnce({
+      content: [{ type: "text", text: "Timeout opening Base URL" }],
+      isError: true,
+    });
+
+    await runPlaywrightExecutionJob(job, jobContext());
+
+    expect(callTool.mock.calls.filter((call) => call[0] === "browser_resize")).toHaveLength(0);
+    expect(executeTestStepWithAgent).not.toHaveBeenCalled();
+    expect(markStepStarted).not.toHaveBeenCalled();
+    expect(skipRemainingQueuedSteps).toHaveBeenCalledWith("c1");
+    expect(finishCase).toHaveBeenCalledWith(
+      "c1",
+      "error",
+      "The browser could not open the Base URL before the first step.",
+      ["S3cret!Value"],
+    );
   });
 
   it("skips remaining queued steps when the first step throws a schema-validation error", async () => {
