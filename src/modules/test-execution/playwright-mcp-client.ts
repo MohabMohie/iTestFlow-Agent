@@ -196,7 +196,7 @@ export async function connectPlaywrightMcp(config: ResolvedPlaywrightMcpConfig, 
       async callTool(name, args, signal) {
         assertAllowedPlaywrightTool(name);
         if (!approved.has(name)) throw new Error(`Playwright MCP server does not advertise tool "${name}".`);
-        return client.callTool({ name, arguments: withoutModelFilename(args) }, undefined, { signal });
+        return await client.callTool({ name, arguments: withoutModelFilename(args) }, undefined, { signal }) as CallToolResult;
       },
       async listOpenTabs(signal) {
         const result = await client.callTool(
