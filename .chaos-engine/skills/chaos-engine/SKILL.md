@@ -4,6 +4,7 @@ description: >-
   Canonical provider-neutral skill router and working contract. Use at the start
   of every task, on every host, in every main thread and delegate, before
   discovery, planning, edits, or answering.
+license: MIT
 ---
 
 # ChaosEngine
@@ -15,17 +16,20 @@ below.
 
 ## Iron laws
 
-1. Research and plan before implementation. Complete the implementation
-   preflight below for every task; triage changes depth, never ordering.
+1. Research and plan before implementation. Complete the
+   [research receipt](../../references/research-receipt.md) for every task;
+   triage changes depth, never ordering.
 2. Evidence over inference. Inspect or run before claiming.
-3. No production code before an observed failing test.
+3. Complete implementation before its consolidated Check phase. Never claim
+   success before that Check runs.
 4. Never weaken, delete, or rewrite a test to reach green. When a test and the
    requirement disagree, stop and report which one you believe is wrong.
 5. Never claim a check you did not run.
-6. Every behavior-changing step gets an independent adversarial review before
-   the next step starts, and every pull request gets at least one before it is
-   armed. The second clause is the floor the first cannot supply: a pull
-   request can be counted, and a step cannot.
+6. During planning, ask whether to enable terminal adversarial review;
+   recommend it and default it on, but owner confirmation controls. If enabled,
+   run at most two rounds only after complete implementation, final scope
+   commit, and automated CI/comment fixes. No hook may force tests or reviews
+   between actions or before that terminal phase.
 
 ## Triage
 
@@ -48,68 +52,26 @@ Re-triage when a premise turns out false, the third fix for one symptom fails,
 the blast radius grows, or the user adds scope.
 
 Retrieval depth reads off the same answer. Load
-[retrieve-first](../../references/retrieve-first.md) before broad manual discovery on
-every row, and at completion to keep the stores from drifting.
+[retrieve-first](../../references/retrieve-first.md) before broad manual discovery
+when a store can shorten the task, and at completion to keep the stores from
+drifting. Bound tool reads and prefer one script over a long tool chain:
+[context economy](../../references/context-economy.md) / [token budget modes](../../references/token-budget-modes.md) and
+[script first](../../references/script-first.md).
 When this entrypoint was loaded through a role adapter, load
 [retrieve-first](../../references/retrieve-first.md) before task-specific discovery,
 including one-file reversible work.
 
 ## Implementation preflight
 
-Before the first implementation mutation, do these in order for every task:
-
-1. Read live files and current instructions.
-2. Load the routed skill and any directly required references.
-3. Query native Memory for durable constraints and prior gotchas.
-4. Query MemPalace for cross-session history and relations.
-5. Query Graphify for callers, dependencies, and blast radius; verify every hit
-   against the live files.
-6. Do authoritative online research, preferring current primary documentation,
-   standards, and proven upstream implementations. Record source URLs and date.
-7. Compare proven approaches, steelman the rejected approach, and choose the
-   smallest root-owner fix that preserves the invariants.
-8. Record a concrete plan, proof commands, and the first RED observation in the
-   issue for issue-backed work, otherwise in the transient working context.
-
-This ordered list is the research receipt. Missing required evidence blocks
-implementation, even for a trivial or urgent task. Analysis may continue while
-a failed store or research source is diagnosed, but code, configuration,
-guidance, persisted-data, and external-system mutation wait for the repaired
-source and a complete receipt. Never substitute a stale index, recollection, or
-generic summary for the named live query. Reuse established solutions and
-standards before inventing a local one.
-After G1-G4, a complete degraded Graphify receipt permits implementation to
-continue. [Graphify](../../references/graphify.md) owns the narrow
-worktree/lock-contention exception and forbids competing shared-state mutation.
-The dated [adoption matrix](../../RESEARCH.md) records the portable harness
-baseline; revalidate a row when its relevant discovery, schema, or install
-contract changes.
-
-### Planning quality and ownership
-
-Every substantive plan is thorough and decision-ready. Establish the main
-objective and reasoning, success criteria, audience, included and excluded
-scope, constraints, current state, callers, assumptions, tradeoffs, risks, and
-proof before reducing the work to files or steps. Ask every material question
-needed for high confidence in the user's intent, but never ask a question the
-repository, retrieval stores, or authoritative sources can answer. Record the
-answer, any remaining unknown, and the evidence behind the confidence level.
-
-Every plan refers explicitly to its native Memory, MemPalace, Graphify, and
-dated authoritative online-research receipts. Compare at least two complete
-approaches and steelman the rejected option. Use Mermaid when dependencies,
-components, state, or workflows become materially clearer; otherwise record
-why a diagram would be decorative. Own implementation of the plan: after approval,
-carry it proactively through RED, implementation, independent review, PR
-delivery, authorized merge, and scoped cleanup. Re-ask only for a new HALT
-condition, not for approval already granted.
+Load the [research receipt](../../references/research-receipt.md) before the
+first implementation mutation. Mechanical one-file reversible work names its
+eight steps, then records store irrelevance without querying.
 
 ## Red flags
 
-These phrases mean you are about to break a law above. When you catch yourself
-writing or thinking one, stop and satisfy the law instead: "should work",
-"probably fine", "just this once", "I will add the test after", "the delegate
-said it passed", "close enough", "no need to run it", "the check covers it".
+Stop and satisfy the unmet law when these appear: "should work", "probably
+fine", "just this once", "I will add the test after", "the delegate said it
+passed", "close enough", "no need to run it", "the check covers it".
 
 ## Project profile
 
@@ -120,20 +82,11 @@ core never assumes a repository, default branch, local root, or companion
 project. A standalone distribution that bundles exactly one profile selects
 that profile automatically and must link it from its discoverable skill.
 
-The repository-local [installer](../../install.py) owns verified install,
-status, update, rollback, and uninstall transactions for this portable tree.
-Its contract is enforced by `tests/scripts/test_chaos_engine_installer.py`.
-The [latest-main bootstrap](../../bootstrap.py) resolves a configured GitHub
-branch to an immutable commit before invoking that installer. Its universal
-agent command and direct fallback are documented in [INSTALL](../../INSTALL.md),
-and `tests/scripts/test_chaos_engine_bootstrap.py` runs the clean/update/failure
+The repository-local [installer](../../install.py), [bootstrap](../../bootstrap.py),
+[dependency doctor](../../dependencies.py), and [host adapters](../../hosts.py)
+own install, status, rollback, and uninstall. See [INSTALL](../../INSTALL.md).
+`tests/scripts/test_chaos_engine_bootstrap.py` runs the clean/update/failure
 flow on Linux, macOS, and Windows.
-The [dependency doctor](../../dependencies.py) installs the tracked
-[tool set](../../dependencies.json) into a project-local runtime; its contract
-is enforced by `tests/scripts/test_chaos_engine_dependencies.py`.
-The [host adapter installer](../../hosts.py) wires supported coding agents to
-the canonical skill and the relocatable [local tool launcher](../../tool.py);
-its contract is enforced by `tests/scripts/test_chaos_engine_hosts.py`.
 
 ## Task isolation
 
@@ -143,31 +96,21 @@ profiles, adapters, configuration, or integration playbooks.
 
 Follow [task isolation](../../references/task-isolation.md) before task-specific
 planning or discovery. Its fresh-primary gate and continuation exception are
-mandatory. Apply the [cleanup scopes](../../references/cleanup-scopes.md) exactly.
-
-### Task scope (default)
-
-Clean only state this task touched. Preserve and report all other state.
-
-### Repository scope (explicit)
-
-Only an explicit request widens cleanup to one repository. Normalize it and
-refresh native Memory, Graphify, and MemPalace; do not touch siblings.
-
-### Machine scope (approval-gated)
-
-The widest scope requires specific user approval and an exact validated
-manifest. Process only approved entries; halt on changed identity or live
-ownership. Approval never crosses target classes.
+mandatory. Apply the canonical
+[cleanup scopes](../../references/cleanup-scopes.md) exactly; this router does
+not restate or override them.
 
 ## Operating contract
 
 1. Orient on requested outcome and concrete proof of done.
 2. Read current instructions and live files before acting.
-3. Plan by uncertainty, blast radius, and reversibility; test riskiest premise first.
-4. Act in smallest verified increment. Fix root owner of an invariant, not each symptom.
-5. Verify affected behavior empirically, including nearest plausible regression.
-6. Report outcome, exact checks, failures, and Learning Loop result.
+3. Plan by uncertainty, blast radius, and reversibility; test riskiest premise first; keep asking follow-ups until the plan is decision-ready. After owner approval, go unattended and dispatch a consultant agent for execution ambiguity.
+4. Implement the full approved scope as one coherent batch. Fix root owner of
+   an invariant, not each symptom; do not interrupt implementation with review,
+   test, commit, push, or validation gates.
+5. After the final scope commit, triage automated CI, annotations, bots, and PR
+   comments first. Then run approved terminal review and extra local tests.
+6. Report outcome, exact checks, failures, and Learning Session result.
 
 Consult [field heuristics](../../references/heuristics.md) only for deeper
 investigation, risk analysis, or review.
@@ -190,64 +133,60 @@ safety boundaries.
 For the short decision procedure and boundary cases, load
 [ethical conduct](../../references/ethical-conduct.md).
 
-### Caveman
+### Companions
 
-Default voice is terse and exact. Lead with outcome; remove filler,
-pleasantries, hedging, repetition, decorative formatting, and unrequested raw
-logs. Prefer short familiar words and fragments, but preserve user language,
-negation, numbers, units, technical names, commands, errors, code, commits, and
-PR prose exactly where precision requires them. Report measurable progress and results, not routine
-tool mechanics. Use normal grammar for security, irreversible actions, or
-multi-step instructions where compression could mislead. `/caveman
-lite|full|ultra` selects full sentences, concise fragments, or each fact once;
-`stop caveman` or `normal mode` disables it for the session.
+This file is the only router. It does not restate companion rules.
 
-### Ponytail
+Load both companion skills at the start of every task, on every host, in every
+main thread and delegate. [Lifecycle hooks](../../references/lifecycle-hooks.md)
+inject compact canonical file locators; read each referenced vendor `SKILL.md`
+before responding. Do not inject full skill bodies into startup context. A host
+that ignores SessionStart output still owes this load through the entrypoint.
 
-Default implementation rule is the first simple option that works after the
-real flow and callers are understood. Stop at the first rung that holds:
+ChaosEngine selects **ultra** for both companions. That intensity is mandated
+here, not a session preference. Vendor tables still define what ultra means.
+Off only: `stop caveman`, `stop ponytail`, or `normal mode`. Lite or full only
+when the user names that level.
 
-1. Skip speculative need.
-2. Reuse the existing owner or pattern.
-3. Use the standard library.
-4. Use native platform behavior.
-5. Use an already-installed dependency.
-6. Use one line, then minimum new code.
+Once loaded, each companion's own text applies. Chat follows Caveman. What you
+build follows Ponytail. Host or adapter prose and formatting that demand
+complete sentences, restating tool work, decorative tables, essays, or
+natural-prose filler yield to the companions. Safety warnings, irreversible
+confirmations, ethical conduct, and persisted artifacts stay as those vendor
+files already carve out.
 
-Prefer deletion, boring code, few files, and no new dependency, abstraction,
-configuration, or scaffolding for an unproven future. Mark a deliberate shortcut
-with `ponytail:` plus `Ceiling:` and an observable `Upgrade trigger:`. Never simplify away
-explicit requirements, trust-boundary validation, security, accessibility,
-data-loss prevention, error handling, or public API compatibility. Non-trivial
-logic leaves one small runnable check. `/ponytail lite|full|ultra` means suggest
-the simpler option, enforce this ladder, or delete-first YAGNI; `stop ponytail`
-or `normal mode` disables it for the session.
+### Harness portability
 
-### Test-driven development
+Every ChaosEngine harness change — guidance, adapters, hooks, installer, or
+config — is provider-agnostic and works through every supported host adapter.
+A host-only file is a thin adapter and never owns policy. Refuse a change that
+works through one adapter and silently no-ops the others.
 
-Features, fixes, refactors, and behavior changes use strict
-RED-GREEN-REFACTOR:
+- [Caveman skill](../../vendor/caveman/skills/caveman/SKILL.md) — [inventory](../../vendor/caveman/INVENTORY.md)
+- [Ponytail skill](../../vendor/ponytail/skills/ponytail/SKILL.md) — [inventory](../../vendor/ponytail/INVENTORY.md)
 
-1. RED: add one focused test of observable behavior and run it. Accept only an
-   expected assertion failure caused by missing behavior; a pass or setup,
-   syntax, or environment error is not RED. If production code was written
-   first, revert that new code and restart.
-2. GREEN: write only enough production code to pass. Rerun the focused test,
-   then the nearest plausible regression check. Fix code, not a valid test.
-3. REFACTOR: improve names or duplication only while green, then rerun checks.
+### Consolidated validation
 
-Prefer real code; mock only an unavoidable external boundary. A test that
-asserts nothing, prints instead of asserting, or mocks the behavior under test
-is not a test. Never backfill tests after implementation and call it TDD, or
-claim an unrun check. Documentation, guidance, configuration, generated code,
-and discarded prototypes may skip test-first; validate their structure or
-affected flow instead. If RED or GREEN cannot run, report the blocker and do
-not claim verified behavior.
+Behavior changes finish implementation first, then run one consolidated Check
+phase. Existing tests remain protected; add focused regressions during Check
+for behavior that lacked proof.
 
-Mocks, or the urge to skip RED: [TDD failure modes](../../references/tdd-failure-modes.md).
+### Validation scope and CI failures
+
+During planning, offer three explicit validation scopes: only tests created or
+edited by the task; the balanced default of those tests plus directly impacted
+tests; or the full suite. Recommend the balanced option and let the owner choose.
+Separately ask whether to enable terminal adversarial review. Recommend and
+default to enabled, capped at two rounds, but record owner's explicit choice.
+
+When a CI job fails, inspect the failing job and isolate its exact failing
+test first. Fix the cause, run only tests created or edited for that cause, and
+push after they pass. Do not rerun an entire test suite merely because CI failed;
+the CI matrix supplies the broader confirmation.
 
 Caveman, Ponytail, and TDD adaptations retain their MIT notices under
-`references/*.LICENSE`.
+`references/*.LICENSE`. The portable tree is MIT:
+[LICENSE](../../LICENSE) and [third-party notices](../../THIRD_PARTY_NOTICES.md).
 
 ## Route
 
@@ -256,9 +195,21 @@ surface that owns it. The entrypoint makes that choice; callers do not bypass it
 by invoking a playbook directly. Load one surface, finish its deliverable, then
 return here for the next.
 
-Routing also orders knowledge retrieval. Query the applicable stores before
-broad manual discovery, and never treat a stale index as authority over a live
-file.
+| Route | Use when | Load |
+| --- | --- | --- |
+| Zero-LLM first | Before chat discovery for install/doctor/repair | [zero-llm-catalog](../../references/zero-llm-catalog.md) |
+| Heal | Drifted install, wiped runtime, unhealthy doctor | [heal-route](../../references/heal-route.md) (file path; no plugin required) |
+| Level-1 catalog | Need a secondary skill/tool beyond this router | [level-1-catalog](../../references/level-1-catalog.md) |
+| Token budget | Triage or env selects ultra-lean / balanced / deep | [token-budget-modes](../../references/token-budget-modes.md) |
+| GAP-EXIT2 UX | Grok/Copilot may not honor exit-2 hard blocks | [host-parity-matrix](../../references/host-parity-matrix.md) checklist |
+
+Routing also orders applicable knowledge retrieval before broad manual
+discovery. One bounded attempt is enough; never retry, repair, refresh, mine,
+checkpoint, poll, or watch a store for an ordinary task, and never treat an
+index as authority over a live file.
+
+Prefer the Zero-LLM / Heal rows before opening host chat for recovery. Iron-law
+Route: doctor and `repair --component` catalog entries beat discovery chat.
 
 The repository skills map at `.agents/skills/README.md` inventories every
 harness surface, adapter, hook, script and check, including the lifecycle guard
@@ -267,44 +218,31 @@ that page reach.
 
 ## Roles and capability levels
 
-### Solo or orchestrate
+### Execution workflow
 
-One rule decides whether main thread does the work. Count the **unrelated tasks
-the owner has in flight** — that count is the number of work streams.
+Select exactly one mode from [execution workflows](../../references/execution-workflows.md),
+the sole owner of workflow names, selection, switching, capacity fallback, and
+writer limits. Use optional local transport only through the
+[OmniRoute skill](../omniroute/SKILL.md); missing OmniRoute never weakens or
+disables the canonical workflows.
 
-Subtasks of a single task are **one** stream, however many there are: work them
-in sequence. Two streams means two things the owner asked for that do not depend
-on each other.
+When orchestrating, load
+[process-owner / Scrum-master](../../references/process-owner-scrum-master.md).
+[Delegation](../../references/delegation.md) owns dispatch, status, integration,
+and review. Apply
+[orchestrator follow-through](../../references/orchestrator-follow-through.md)
+automatically while work is live. [Roles](../../references/roles.md) owns role
+boundaries. The main orchestrator stays available, enforces process-owner
+duties, and owns the sole terminal Learning Session.
 
-| Work streams | Mode |
-| --- | --- |
-| One | **Solo.** Do the work yourself, in sequence. Do not delegate it. |
-| Two or more | **Orchestrate.** One agent per stream, each in its own worktree, up to four. Do no task work yourself. |
-
-Solo is not a lesser mode. Handing a single stream to a delegate buys nothing
-and costs a spec, a handoff, and the risk of two writers in one tree.
-
-Orchestrating exists so you stay reachable: the owner can redirect you, and a
-delegate can get a decision, only while you are not head-down in work. In this
-mode you make no edits, run no long job, and install nothing;
-[delegation](../../references/delegation.md) lists what stays yours.
-
-**Switching mode.** Finish or hand over what you hold before you switch. While
-any delegate still owns a stream you remain orchestrating, even if the count
-alone would say otherwise. Never start an edit in the same breath as adopting
-solo mode; land the transition first.
-
-**A host with no subagent primitive cannot orchestrate.** It works solo at any
-count, sequentially, and still owes the review gate a separate instance.
-
-**A reviewer is never a work stream.** Review does not turn a solo session into
-an orchestrated one, and a read-only reviewer does not consume one of the four
-writer slots.
+Implementation follows [TDD and its PDCA boundary](../../references/tdd.md#workflow).
+The selected project profile may link its concrete PDCA playbook without
+redefining the workflow or roles.
 
 Capability comes in three levels on every host: most intelligent, default, and
 mechanical. Name them that way, never by provider or product.
 
-[Delegation](../../references/delegation.md) defines the levels and the review gate;
+[Delegation](../../references/delegation.md) defines levels and optional terminal review;
 [roles](../../references/roles.md) defines role boundaries. Read both before dispatch.
 Every dispatch loads this entrypoint and carries its bounded covenant.
 
@@ -314,59 +252,35 @@ For issue-to-merged-PR work, use the [GitHub playbook](../../references/work-git
 Do not confuse a diff with an outcome: run the real affected flow, review the
 actual diff, and keep external actions within granted authority.
 
-Opening a PR does not end the duty. Arm auto-merge once its review gate passes,
+Opening a PR does not end the duty. Arm auto-merge once selected terminal assurance passes,
 then watch with `gh pr checks <n> --watch --fail-fast` until the remote confirms
 merged. Red and conflicting are yours to fix, not to hand back; stale emits no
 event, so ask for it. The duty survives compaction, a dead delegate, and the
 task that opened the PR:
 [PR-merger workflow](../../references/work-github-playbook.md#pr-merger-workflow-arm-watch-fix-confirm).
 
-## Learning loop
+## Reflection
 
-Before reporting done, run the
-[learned-lessons workflow](../../references/work-github-playbook.md#learned-lessons-workflow):
-route every learning exactly once. One row per learning; never two, never a
-diary. Before routing, scan the session for failures, traps, and guard blocks:
-if a refusal was correct, capture the lesson; if it was wrong or needs follow-up,
-open a new standalone GitHub issue after duplicate search.
+Follow [reflection checkpoints](../../references/reflection-checkpoints.md): no
+third repeated fix without a receipt; terminal reflection after one hour.
 
-Meaningful failures, corrections, review findings, and repeated friction first
-become minimal structured candidates through the installed
-[learning controller](../../learning.py) using `.chaos-engine/learning.py queue`.
-Its privacy, confirmation, deduplication, and offline-queue contract is enforced
-by `tests/scripts/test_chaos_engine_learning.py`; the dated adoption matrix is
-enforced by `tests/scripts/test_chaos_engine_research.py`.
-Its privacy gate rejects secrets, paths, repository identity, prompts,
-transcripts, logs, URLs, email, and source excerpts before any local state or
-network call. The local queue is digest-deduplicated. Do not weaken or bypass
-that schema to preserve more detail.
+## Learning Session
 
-An actionable reusable candidate stays local unless the user accepts the
-displayed estimated token cost. Only then may `.chaos-engine/learning.py submit
---yes` search the configured upstream and create one minimal issue. Privacy,
-authentication, or network uncertainty leaves the item queued. Never create a
-PR, change guidance, or merge automatically. An issue is input to the normal
-quarantine, RED/GREEN, independent-review, repair, and revert controls; it is
-not permission to self-modify. Informational findings with no action may use
-the normal no-learning or knowledge route without manufacturing an issue.
-
-| What surfaced | Where it goes |
-| --- | --- |
-| A fact that cost you time and would cost the next agent the same | native Memory, with the evidence that proves it |
-| A decision with a rationale someone will otherwise re-litigate | native Memory as a decision, superseding the entry it replaces |
-| A relation or impact that spans entities or sessions | MemPalace |
-| A structural change to what calls or depends on what | flag Graphify for refresh |
-| A procedure that misled you, or one you had to invent | fix the guidance file that should have carried it |
-| Any problem, follow-up action, or potential improvement needing work | after duplicate search, open one new standalone GitHub issue for that action; link its receipt as evidence |
-
-Nothing durable is a valid result. Say so rather than manufacturing an entry.
-Re-record nothing already stored: search before writing, and update the existing
-knowledge object instead of adding a near-duplicate. Knowledge routing and action
-tracking are separate duties: a receipt, Memory entry, Graphify flag, or existing
-issue reference never replaces the required new issue for an action.
+After confirmed delivery and any terminal reflection, run exactly one root-owned
+Learning Session immediately before the final report. Load
+[self-improve](../self-improve/SKILL.md) for the dual-track harness + product
+protocol. Never start it from a
+commit, guard refusal, failed diagnostic, delegate stop, or intermediate push. Run the
+[learned-lessons workflow](../../references/work-github-playbook.md#learned-lessons-workflow).
+Scan the session for failures, traps, and guard blocks. Route each learning
+once: native Memory, MemPalace, Graphify, guidance, or a new GitHub issue after
+duplicate search via `learning.py`. Prefer a smaller discriminating observation. Self-development
+has no cap. Nothing durable is a valid result. Search before writing.
 
 Gambaru.
 
 The portable distribution's [human overview](../../README.md) uses the
 deterministic light, dark, monochrome, lockup, and small-size identity masters
 documented in the [ChaosEngine identity guide](../../assets/brand/BRAND.md).
+Those masters stay in the origin source tree and are not copied into adopter
+installs.
